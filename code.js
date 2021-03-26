@@ -10,20 +10,20 @@ let player = {
 };
 
 player.collide = function(){
-    let minY = this.pos.y;
-    let maxY = this.pos.y + 33;
-    let minX = this.pos.x;
-    let maxX = this.pos.x + 33;
+    let minY = Math.floor(this.pos.y);
+    let maxY = Math.floor(this.pos.y + 32);
+    let minX = Math.floor(this.pos.x);
+    let maxX = Math.floor(this.pos.x + 32);
 
     //Bottom Left
     let infoBL = tileCheck(map,minX,maxY);
     //Bottom Right
-    let infoBR = tileCheck(map,minY,maxY);
+    //let infoBR = tileCheck(map,minY,maxY);
     //Top Left
-    if(infoBR[0] && infoBL[0]){
-        console.log("Collision at feet");
+    if( infoBL[0]){
+        
         this.v.y=0;
-        this.pos.y = infoBR[2] - 32;
+        this.pos.y = infoBL[2] - 33;
         
         this.inAir = false;
     }
@@ -56,7 +56,6 @@ player.update = function(){
     
 };
 player.moveRight = function(){
-    console.log("hey");
     if(this.v.x<5){
         this.v.x = 10;
     }
@@ -66,7 +65,7 @@ player.moveLeft = function(){
         this.v.x = -10;
 }
 player.draw = function(){
-    ctx.fillRect(this.pos.x,this.pos.y,this.width,this.height);
+    ctx.fillRect(this.pos.x%1920,this.pos.y%1024,this.width,this.height);
 };
 
 
