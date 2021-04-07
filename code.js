@@ -1,45 +1,124 @@
 let player = {
-    pos:new Vector(1,400),
+    pos:new Vector(2300,700),
     v: new Vector (0,0),
-    a: new Vector (0,0.2),
+    a: new Vector (0,0.1),
     width:32,
-    height:32,
+    height:48,
     movingLeft: false,
     movingRight: false,
-    inAir: true
+    upPressed: false,
+    inAir: true,
+    timesJumped:0
 };
+let arrayOfClouds = [];
+
 
 player.collide = function(){
-    let minY = Math.floor(this.pos.y);
-    let maxY = Math.floor(this.pos.y + 32);
-    let minX = Math.floor(this.pos.x);
-    let maxX = Math.floor(this.pos.x + 32);
+  //Collision on x-axis
+    //Moving Left
+    if(player.v.x<0){
+        let checkX = this.pos.x+this.v.x;
+        //TL
+        let infoTL = tileCheck(map,checkX,this.pos.y+1);
+        if(infoTL[0]){
+            this.v.x = 0; 
+            this.pos.x -= checkX-(infoTL[1]+64);
+        };
+        //BL
+        let infoBL = tileCheck(map,checkX,this.pos.y+this.height);
+        if(infoBL[0]){
+            this.v.x = 0; 
+            this.pos.x -= checkX-(infoBL[1]+64);
+        };
 
-    //Bottom Left
-    let infoBL = tileCheck(map,minX,maxY);
-    //Bottom Right
-    //let infoBR = tileCheck(map,minY,maxY);
-    //Top Left
-    if( infoBL[0]){
+
+        
+        
+    }
+    //Moving Right
+    if(player.v.x>0){
+        let checkX = this.width+this.pos.x+this.v.x;
+        //TR
+        let infoTR = tileCheck(map,checkX,this.pos.y);
+        if(infoTR[0]){
+            this.v.x = 0; 
+            this.pos.x -= checkX-(infoTR[1]);
+        };
+        //BR
+        let infoBR = tileCheck(map,checkX,this.pos.y+this.height);
+        if(infoBR[0]){
+            this.v.x = 0; 
+            this.pos.x -= checkX-(infoBR[1]);
+        };
+    };
+
+
+  //Collision on y-axis
+    
+        let maxY = this.pos.y + this.height + this.v.y + 1 ;
+        let minY = this.pos.y + this.v.y;
+        let minX = this.pos.x;
+        let maxX = this.pos.x + this.width;
+
+
+
+if(this.v.y>=0){
+let infoBL = tileCheck(map,minX,maxY);
+
+if( infoBL[0]){
+    let deltaY = maxY-infoBL[2];
+    this.v.y=0;
+    this.pos.y -= deltaY+this.v.y;
+    this.timesJumped = 0;
+    this.inAir = false;
+}
+
+let infoBR = tileCheck(map,maxX,maxY);
+if( infoBR[0]){
+    let deltaY = maxY-infoBR[2];
+    this.v.y=0;
+    this.pos.y -= deltaY;
+    this.timesJumped = 0;
+    this.inAir = false;
+}
+if(!(infoBR[0])&& !(infoBL[0])){
+    this.inAir = true;
+}}
+else{
+    let infoTL = tileCheck(map,minX,minY)
+    
+    if( infoTL[0]){
         
         this.v.y=0;
-        this.pos.y = infoBL[2] - 33;
+        this.pos.y = infoTL[2]+65;
+};
+let infoTR = tileCheck(map,maxX,minY);
+if( infoTR[0]){
         
-        this.inAir = false;
-    }
-
-    
+    this.v.y=0;
+    this.pos.y = infoTR[2]+65;
 }
+    }}
+        
+    
+  
+
 player.jump   = function(){
     
     
-    if(this.inAir==false){
-    this.v.y+=-10;
-    this.inAir = true;}
+    if(this.timesJumped<1){
+    console.log("jump")
+    this.pos.y -=1;
+    this.v.y = -5;
+    this.inAir = true;
+    this.timesJumped ++;}
     
     }
 
 player.update = function(){
+    if(this.upPressed){
+        this.jump();
+    }
     
     if(this.movingLeft){
         player.moveLeft();
@@ -47,22 +126,23 @@ player.update = function(){
     if(this.movingRight){
         player.moveRight();
     }
-    if(this.inAir==true){
-    this.v.add(this.a)};
-    this.pos.x += this.v.x;
-    this.pos.y += this.v.y;
-    if(this.inAir==false){
-    this.v.x=0;};
+    
+    this.v.add(this.a);
+    
+    this.pos.add(this.v);
+    this.v.x *=0.87;
     
 };
 player.moveRight = function(){
-    if(this.v.x<5){
-        this.v.x = 10;
+    if(this.v.x<4){
+        this.v.x += 1;
     }
 }
 
 player.moveLeft = function(){
-        this.v.x = -10;
+    if(this.v.x>-4){
+        this.v.x -= 1;
+    }
 }
 player.draw = function(){
     ctx.fillRect(this.pos.x%1920,this.pos.y%1024,this.width,this.height);
@@ -71,7 +151,7 @@ player.draw = function(){
 
 let canvas = document.getElementById("canvas");
 let ctx = canvas.getContext("2d");
-let things = 2;
+let things = 4;
 let chunk = 0;
 
 let mapWidth = 30;
@@ -81,17 +161,27 @@ let map,newMap;
 let xmlhttp;
 loadFile(mapUrl);
 
-let a = new Image();
-a.onload = thingLoaded;
-a.src = "img/spritesheets/exampleTilesheet.png";
+let tilesheet1 = new Image();
+tilesheet1.onload = thingLoaded;
+tilesheet1.src = "img/spritesheets/exampleTilesheet.png";
+
+
+let leaf = new Image();
+leaf.onload = thingLoaded;
+leaf.src = "img/spritesheets/leaf_01.png"
+
+let sheetClouds = new Image();
+sheetClouds.onload = thingLoaded;
+sheetClouds.src = "img/spritesheets/clouds.png";
 
 document.onkeydown = function checkKeyDown(event) {
 
     event = event || window.event;
+    
 
     if (event.keyCode == '38') {
         // up 
-        player.jump(); 
+        player.upPressed = true;
     }
     else if (event.keyCode == '40') {
         // down arrow
@@ -103,6 +193,10 @@ document.onkeydown = function checkKeyDown(event) {
     else if (event.keyCode == '39') {
        // right arrow
        player.movingRight = true;
+    }
+    else if ( event.keyCode == '32'){
+        player.jump();
+        
     }};
 document.onkeyup = function checkKeyUp(e){
    
@@ -114,8 +208,8 @@ document.onkeyup = function checkKeyUp(e){
     }
     if (e.keyCode == 39 ){
         player.movingRight = false;
-    }};  
-
-
-
-
+    }
+    if (e.keyCode == '38') {
+        // up 
+        player.upPressed = false;
+    }}
