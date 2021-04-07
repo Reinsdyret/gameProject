@@ -81,6 +81,9 @@ let map,newMap;
 let xmlhttp;
 loadFile(mapUrl);
 
+// testing projectile
+let project;
+
 let a = new Image();
 a.onload = thingLoaded;
 a.src = "img/spritesheets/exampleTilesheet.png";
